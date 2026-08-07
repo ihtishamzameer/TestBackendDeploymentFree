@@ -29,5 +29,13 @@ namespace Test01.Controllers
         {
             return Ok(new { message = "Register successful" });
         }
+
+        [HttpGet]
+        [Route("test")]
+        public IActionResult Test()
+        {
+            return Ok(new { message = "Test successful" });
+        }
+
     }
 }

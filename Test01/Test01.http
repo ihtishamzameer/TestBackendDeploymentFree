@@ -1,4 +1,5 @@
-@Test01_HostAddress = http://localhost:5231
+# @Test01_HostAddress = http://localhost:5231
+@Test01_HostAddress = http://ihtisham.runasp.net/
 
 GET {{Test01_HostAddress}}/weatherforecast/
 Accept: application/json

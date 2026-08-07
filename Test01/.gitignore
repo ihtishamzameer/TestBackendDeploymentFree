@@ -484,6 +484,8 @@ $RECYCLE.BIN/
 # User secrets (extra safety)
 secrets.json
 
+publish/
+
 # Environment files
 .env
 appsettings.Development.json
