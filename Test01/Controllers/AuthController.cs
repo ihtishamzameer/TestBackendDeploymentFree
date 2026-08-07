@@ -20,6 +20,11 @@ namespace Test01.Controllers
         [Route("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
+            var result = _context.TestModel01.FirstOrDefault(u => u.Name == request.Username && u.Description == request.Password);
+            if(result != null)
+            {
+                return Unauthorized(new { message = "Invalid username or password" });
+            }
             return Ok(new { message = "Login successful" });
         }
 
