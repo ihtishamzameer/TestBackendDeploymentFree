@@ -43,7 +43,7 @@ jobs:
           $msdeploy = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
 
           if (-not $msdeploy) {
-            Write-Error "MSDeploy.exe was not found on the GitHub Windows runner."
+            Write-Error "MSDeploy.exe was not found."
             exit 1
           }
 
@@ -70,29 +70,34 @@ jobs:
             exit 1
           }
 
-          $destinationUrl = "$env:SERVER_COMPUTER_NAME/msdeploy.axd?site=$env:WEBSITE_NAME"
           $sourcePath = "$env:GITHUB_WORKSPACE\publish"
+          $destinationUrl = "$env:SERVER_COMPUTER_NAME/msdeploy.axd?site=$env:WEBSITE_NAME"
 
           Write-Host "Deploying to MonsterASP..."
           Write-Host "Website: $env:WEBSITE_NAME"
           Write-Host "Server: $env:SERVER_COMPUTER_NAME"
 
-          $msdeployArgs = @(
-            "-verb:sync"
-            "-source:contentPath=$sourcePath"
-            "-dest:contentPath=$env:WEBSITE_NAME,computerName=$destinationUrl,userName=$env:SERVER_USERNAME,password=$env:SERVER_PASSWORD,authType=Basic,includeAcls=False"
-            "-allowUntrusted"
-            "-disableLink:AppPoolExtension"
-            "-disableLink:ContentExtension"
-            "-disableLink:CertificateExtension"
+          $arguments = @(
+            "-verb:sync",
+            "-source:contentPath=$sourcePath",
+            "-dest:contentPath=$env:WEBSITE_NAME,computerName=$destinationUrl,userName=$env:SERVER_USERNAME,password=$env:SERVER_PASSWORD,authType=Basic,includeAcls=False",
+            "-allowUntrusted",
+            "-disableLink:AppPoolExtension",
+            "-disableLink:ContentExtension",
+            "-disableLink:CertificateExtension",
             "-verbose"
           )
 
-          & $msdeploy @msdeployArgs
+          $process = Start-Process `
+            -FilePath $msdeploy `
+            -ArgumentList $arguments `
+            -Wait `
+            -PassThru `
+            -NoNewWindow
 
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "MSDeploy failed with exit code $LASTEXITCODE."
-            exit $LASTEXITCODE
+          if ($process.ExitCode -ne 0) {
+            Write-Error "MSDeploy failed with exit code $($process.ExitCode)."
+            exit $process.ExitCode
           }
 
           Write-Host "Deployment completed successfully."
