@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build_and_deploy:
@@ -30,10 +31,63 @@ jobs:
       - name: Publish
         run: dotnet publish Test01/Test01.csproj --configuration Release --output ./publish --runtime win-x86
 
+      - name: Locate MSDeploy
+        shell: powershell
+        run: |
+          $paths = @(
+            "${env:ProgramFiles(x86)}\IIS\Microsoft Web Deploy V3\msdeploy.exe",
+            "${env:ProgramFiles}\IIS\Microsoft Web Deploy V4\msdeploy.exe",
+            "${env:ProgramFiles}\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          )
+
+          $msdeploy = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+          if (-not $msdeploy) {
+            Write-Error "MSDeploy.exe was not found on the GitHub Windows runner."
+            exit 1
+          }
+
+          Write-Host "MSDeploy found at: $msdeploy"
+          & $msdeploy -version
+
       - name: Deploy to MonsterASP
-        uses: rasmusbuchholdt/simply-web-deploy@2.1.0
-        with:
-          website-name: ${{ secrets.WEBSITE_NAME }}
-          server-computer-name: ${{ secrets.SERVER_COMPUTER_NAME }}
-          server-username: ${{ secrets.SERVER_USERNAME }}
-          server-password: ${{ secrets.SERVER_PASSWORD }}
+        shell: powershell
+        env:
+          WEBSITE_NAME: ${{ secrets.WEBSITE_NAME }}
+          SERVER_COMPUTER_NAME: ${{ secrets.SERVER_COMPUTER_NAME }}
+          SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
+          SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+        run: |
+          $paths = @(
+            "${env:ProgramFiles(x86)}\IIS\Microsoft Web Deploy V3\msdeploy.exe",
+            "${env:ProgramFiles}\IIS\Microsoft Web Deploy V4\msdeploy.exe",
+            "${env:ProgramFiles}\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          )
+
+          $msdeploy = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+          if (-not $msdeploy) {
+            Write-Error "MSDeploy.exe was not found."
+            exit 1
+          }
+
+          $destinationUrl = "$env:SERVER_COMPUTER_NAME/msdeploy.axd?site=$env:WEBSITE_NAME"
+
+          Write-Host "Deploying to MonsterASP..."
+          Write-Host "Website: $env:WEBSITE_NAME"
+          Write-Host "Server: $env:SERVER_COMPUTER_NAME"
+
+          & $msdeploy `
+            -verb:sync `
+            "-source:contentPath=$env:GITHUB_WORKSPACE\publish" `
+            "-dest:contentPath=$env:WEBSITE_NAME,computerName=$destinationUrl,userName=$env:SERVER_USERNAME,password=$env:SERVER_PASSWORD,authtype=Basic,includeAcls=False" `
+            -allowUntrusted `
+            -disableLink:AppPoolExtension `
+            -disableLink:ContentExtension `
+            -disableLink:CertificateExtension `
+            -verbose
+
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "MSDeploy failed with exit code $LASTEXITCODE."
+            exit $LASTEXITCODE
+          }
