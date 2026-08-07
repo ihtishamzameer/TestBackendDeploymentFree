@@ -49,7 +49,7 @@ jobs:
 
           Write-Host "MSDeploy found at: $msdeploy"
 
-      - name: Deploy to MonsterASP
+            - name: Deploy to MonsterASP
         shell: powershell
         env:
           WEBSITE_NAME: ${{ secrets.WEBSITE_NAME }}
@@ -71,22 +71,28 @@ jobs:
           }
 
           $destinationUrl = "$env:SERVER_COMPUTER_NAME/msdeploy.axd?site=$env:WEBSITE_NAME"
+          $sourcePath = "$env:GITHUB_WORKSPACE\publish"
 
           Write-Host "Deploying to MonsterASP..."
           Write-Host "Website: $env:WEBSITE_NAME"
           Write-Host "Server: $env:SERVER_COMPUTER_NAME"
 
-          & $msdeploy `
-            -verb:sync `
-            "-source:contentPath=$env:GITHUB_WORKSPACE\publish" `
-            "-dest:contentPath=$env:WEBSITE_NAME,computerName=$destinationUrl,userName=$env:SERVER_USERNAME,password=$env:SERVER_PASSWORD,authtype=Basic,includeAcls=False" `
-            -allowUntrusted `
-            -disableLink:AppPoolExtension `
-            -disableLink:ContentExtension `
-            -disableLink:CertificateExtension `
-            -verbose
+          $msdeployArgs = @(
+            "-verb:sync"
+            "-source:contentPath=$sourcePath"
+            "-dest:contentPath=$env:WEBSITE_NAME,computerName=$destinationUrl,userName=$env:SERVER_USERNAME,password=$env:SERVER_PASSWORD,authType=Basic,includeAcls=False"
+            "-allowUntrusted"
+            "-disableLink:AppPoolExtension"
+            "-disableLink:ContentExtension"
+            "-disableLink:CertificateExtension"
+            "-verbose"
+          )
+
+          & $msdeploy @msdeployArgs
 
           if ($LASTEXITCODE -ne 0) {
             Write-Error "MSDeploy failed with exit code $LASTEXITCODE."
             exit $LASTEXITCODE
           }
+
+          Write-Host "Deployment completed successfully."
