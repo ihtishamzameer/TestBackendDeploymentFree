@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+
   workflow_dispatch:
 
 jobs:
@@ -31,23 +32,8 @@ jobs:
       - name: Publish
         run: dotnet publish Test01/Test01.csproj --configuration Release --output ./publish --runtime win-x86
 
-      - name: Locate MSDeploy
-        shell: powershell
-        run: |
-          $paths = @(
-            "${env:ProgramFiles(x86)}\IIS\Microsoft Web Deploy V3\msdeploy.exe",
-            "${env:ProgramFiles}\IIS\Microsoft Web Deploy V4\msdeploy.exe",
-            "${env:ProgramFiles}\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-          )
-
-          $msdeploy = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
-
-          if (-not $msdeploy) {
-            Write-Error "MSDeploy.exe was not found."
-            exit 1
-          }
-
-          Write-Host "MSDeploy found at: $msdeploy"
+      - name: Verify Publish Output
+        run: dir ./publish
 
       - name: Deploy to MonsterASP
         shell: cmd
@@ -68,17 +54,17 @@ jobs:
 
           "%MSDEPLOY%" ^
             -verb:sync ^
-            "-source:contentPath=%SOURCE%" ^
-            "-dest:contentPath=%WEBSITE_NAME%,computerName=%DESTINATION%,userName=%SERVER_USERNAME%,password=%SERVER_PASSWORD%,authType=Basic,includeAcls=False" ^
+            -source:contentPath="%SOURCE%" ^
+            -dest:contentPath="%WEBSITE_NAME%",computerName="%DESTINATION%",userName="%SERVER_USERNAME%",password="%SERVER_PASSWORD%",authType=Basic ^
             -allowUntrusted ^
             -disableLink:AppPoolExtension ^
             -disableLink:ContentExtension ^
             -disableLink:CertificateExtension ^
             -verbose
 
-          if errorlevel 1 (
+          IF %ERRORLEVEL% NEQ 0 (
             echo MSDeploy failed.
-            exit /b 1
+            exit /b %ERRORLEVEL%
           )
 
           echo Deployment completed successfully.
