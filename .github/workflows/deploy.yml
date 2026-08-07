@@ -49,13 +49,14 @@ jobs:
 
           Write-Host "MSDeploy found at: $msdeploy"
 
-            - name: Deploy to MonsterASP
+      - name: Deploy to MonsterASP
         shell: cmd
         env:
           WEBSITE_NAME: ${{ secrets.WEBSITE_NAME }}
           SERVER_COMPUTER_NAME: ${{ secrets.SERVER_COMPUTER_NAME }}
           SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
           SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+
         run: |
           set "MSDEPLOY=C:\Program Files (x86)\IIS\Microsoft Web Deploy V3\msdeploy.exe"
           set "SOURCE=%GITHUB_WORKSPACE%\publish"
