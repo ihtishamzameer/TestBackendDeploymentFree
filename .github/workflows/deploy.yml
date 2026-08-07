@@ -49,7 +49,7 @@ jobs:
 
           Write-Host "MSDeploy found at: $msdeploy"
 
-            - name: Deploy to MonsterASP
+      - name: Deploy to MonsterASP
         shell: powershell
         env:
           WEBSITE_NAME: ${{ secrets.WEBSITE_NAME }}
