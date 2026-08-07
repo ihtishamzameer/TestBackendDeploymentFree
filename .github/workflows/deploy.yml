@@ -43,12 +43,11 @@ jobs:
           $msdeploy = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
 
           if (-not $msdeploy) {
-            Write-Error "MSDeploy.exe was not found on the GitHub Windows runner."
-            exit 1
-          }
+ 		 Write-Error "MSDeploy.exe was not found on the GitHub Windows runner."
+ 		 exit 1
+		}
 
-          Write-Host "MSDeploy found at: $msdeploy"
-          & $msdeploy -version
+	Write-Host "MSDeploy found at: $msdeploy"
 
       - name: Deploy to MonsterASP
         shell: powershell
