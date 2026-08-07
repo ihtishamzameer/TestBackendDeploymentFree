@@ -49,55 +49,35 @@ jobs:
 
           Write-Host "MSDeploy found at: $msdeploy"
 
-      - name: Deploy to MonsterASP
-        shell: powershell
+            - name: Deploy to MonsterASP
+        shell: cmd
         env:
           WEBSITE_NAME: ${{ secrets.WEBSITE_NAME }}
           SERVER_COMPUTER_NAME: ${{ secrets.SERVER_COMPUTER_NAME }}
           SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
           SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
         run: |
-          $paths = @(
-            "${env:ProgramFiles(x86)}\IIS\Microsoft Web Deploy V3\msdeploy.exe",
-            "${env:ProgramFiles}\IIS\Microsoft Web Deploy V4\msdeploy.exe",
-            "${env:ProgramFiles}\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          set "MSDEPLOY=C:\Program Files (x86)\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          set "SOURCE=%GITHUB_WORKSPACE%\publish"
+          set "DESTINATION=%SERVER_COMPUTER_NAME%/msdeploy.axd?site=%WEBSITE_NAME%"
+
+          echo Deploying to MonsterASP...
+          echo Website: %WEBSITE_NAME%
+          echo Server: %SERVER_COMPUTER_NAME%
+
+          "%MSDEPLOY%" ^
+            -verb:sync ^
+            "-source:contentPath=%SOURCE%" ^
+            "-dest:contentPath=%WEBSITE_NAME%,computerName=%DESTINATION%,userName=%SERVER_USERNAME%,password=%SERVER_PASSWORD%,authType=Basic,includeAcls=False" ^
+            -allowUntrusted ^
+            -disableLink:AppPoolExtension ^
+            -disableLink:ContentExtension ^
+            -disableLink:CertificateExtension ^
+            -verbose
+
+          if errorlevel 1 (
+            echo MSDeploy failed.
+            exit /b 1
           )
 
-          $msdeploy = $paths | Where-Object { Test-Path $_ } | Select-Object -First 1
-
-          if (-not $msdeploy) {
-            Write-Error "MSDeploy.exe was not found."
-            exit 1
-          }
-
-          $sourcePath = "$env:GITHUB_WORKSPACE\publish"
-          $destinationUrl = "$env:SERVER_COMPUTER_NAME/msdeploy.axd?site=$env:WEBSITE_NAME"
-
-          Write-Host "Deploying to MonsterASP..."
-          Write-Host "Website: $env:WEBSITE_NAME"
-          Write-Host "Server: $env:SERVER_COMPUTER_NAME"
-
-          $arguments = @(
-            "-verb:sync",
-            "-source:contentPath=$sourcePath",
-            "-dest:contentPath=$env:WEBSITE_NAME,computerName=$destinationUrl,userName=$env:SERVER_USERNAME,password=$env:SERVER_PASSWORD,authType=Basic,includeAcls=False",
-            "-allowUntrusted",
-            "-disableLink:AppPoolExtension",
-            "-disableLink:ContentExtension",
-            "-disableLink:CertificateExtension",
-            "-verbose"
-          )
-
-          $process = Start-Process `
-            -FilePath $msdeploy `
-            -ArgumentList $arguments `
-            -Wait `
-            -PassThru `
-            -NoNewWindow
-
-          if ($process.ExitCode -ne 0) {
-            Write-Error "MSDeploy failed with exit code $($process.ExitCode)."
-            exit $process.ExitCode
-          }
-
-          Write-Host "Deployment completed successfully."
+          echo Deployment completed successfully.
