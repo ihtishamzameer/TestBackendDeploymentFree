@@ -46,7 +46,7 @@ jobs:
         run: |
           set "MSDEPLOY=C:\Program Files (x86)\IIS\Microsoft Web Deploy V3\msdeploy.exe"
           set "SOURCE=%GITHUB_WORKSPACE%\publish"
-          set "DESTINATION=%SERVER_COMPUTER_NAME%/msdeploy.axd?site=%WEBSITE_NAME%"
+          set "DESTINATION=https://%SERVER_COMPUTER_NAME%:8172/msdeploy.axd?site=%WEBSITE_NAME%"
 
           echo Deploying to MonsterASP...
           echo Website: %WEBSITE_NAME%
