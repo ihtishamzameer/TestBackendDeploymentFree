@@ -15,7 +15,7 @@ namespace Test01.Controllers
         private readonly IJwtService _jwtService;
         private readonly IPasswordHasher<User> _passwordHasher;
 
-        public AuthController(AppDbContext context,IJwtService jwtService,IPasswordHasher<User> passwordHasher)
+        public AuthController(AppDbContext context, IJwtService jwtService, IPasswordHasher<User> passwordHasher)
         {
             _context = context;
             _jwtService = jwtService;
@@ -28,26 +28,33 @@ namespace Test01.Controllers
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
 
-            var usernameExists = await _context.Users.AnyAsync(x => x.Username == request.Username);
-
-            if (usernameExists)
+            try
             {
-                return Conflict(new
+                var usernameExists = await _context.Users.AnyAsync(x => x.Username == request.Username);
+
+                if (usernameExists)
                 {
-                    message = "Username already exists."
-                });
+                    return Conflict(new
+                    {
+                        message = "Username already exists."
+                    });
+                }
+
+                var user = new User
+                {
+                    Username = request.Username
+                };
+
+                user.PasswordHash = _passwordHasher.HashPassword(user, request.Password
+                );
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
             }
-
-            var user = new User
+            catch (Exception ex)
             {
-                Username = request.Username
-            };
-
-            user.PasswordHash = _passwordHasher.HashPassword(user,request.Password
-            );
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+                Console.WriteLine("error is ---------> " + ex.Message);
+            }
 
             return StatusCode(StatusCodes.Status201Created, new
             {
@@ -71,7 +78,7 @@ namespace Test01.Controllers
                 });
             }
 
-            var passwordResult = _passwordHasher.VerifyHashedPassword(user,user.PasswordHash,request.Password);
+            var passwordResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
 
             if (passwordResult == PasswordVerificationResult.Failed)
             {

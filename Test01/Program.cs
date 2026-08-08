@@ -64,6 +64,14 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.MapGet("/health", () =>
+{
+    return Results.Ok(new
+    {
+        status = "API is running"
+    });
+});
+
 app.UseHttpsRedirection();
 app.UseCors("AllowReactApp");
 
