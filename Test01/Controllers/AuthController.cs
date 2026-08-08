@@ -25,7 +25,7 @@ namespace Test01.Controllers
             _logger = logger;
         }
 
-        [Authorize]
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
@@ -72,7 +72,7 @@ namespace Test01.Controllers
             }
         }
 
-        //[Authorize]
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
@@ -131,7 +131,7 @@ namespace Test01.Controllers
             });
         }
 
-        [Authorize]
+        [AllowAnonymous]
         [HttpGet("test")]
         public IActionResult Test()
         {
