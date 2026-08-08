@@ -27,9 +27,11 @@
                 SecurityAlgorithms.HmacSha256
             );
 
-            var expires = rememberMe
-                ? DateTime.UtcNow.AddDays(30)
-                : DateTime.UtcNow.AddHours(1);
+            //var expires = rememberMe
+            //    ? DateTime.UtcNow.AddDays(30)
+            //    : DateTime.UtcNow.AddHours(1);
+
+            var expires = DateTime.UtcNow.AddMinutes(15);
 
             var claims = new[]
             {

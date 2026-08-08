@@ -61,6 +61,10 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
+builder.Services.AddScoped<RefreshTokenService>();
+
+builder.Services.AddScoped<PasswordResetTokenService>();
+
 var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
@@ -156,3 +160,5 @@ app.MapControllers();
 
 // Run
 app.Run();
+
+public partial class Program { }

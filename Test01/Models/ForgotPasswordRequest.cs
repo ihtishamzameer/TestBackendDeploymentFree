@@ -1,0 +1,8 @@
+﻿namespace Test01.Models
+{
+    public class ForgotPasswordRequest
+    {
+        public string Email { get; set; } = string.Empty;
+
+    }
+}
