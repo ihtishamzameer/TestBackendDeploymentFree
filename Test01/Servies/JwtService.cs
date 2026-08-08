@@ -16,18 +16,10 @@
             _configuration = configuration;
         }
 
-        public string GenerateToken(User user)
+        public string GenerateToken(User user, bool rememberMe)
         {
-            var claims = new[]
-            {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.Username)
-        };
-
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(
-                    _configuration["Jwt:Key"]!
-                )
+                Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!)
             );
 
             var credentials = new SigningCredentials(
@@ -35,11 +27,21 @@
                 SecurityAlgorithms.HmacSha256
             );
 
+            var expires = rememberMe
+                ? DateTime.UtcNow.AddDays(30)
+                : DateTime.UtcNow.AddHours(1);
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username)
+            };
+
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(1),
+                expires: expires,
                 signingCredentials: credentials
             );
 

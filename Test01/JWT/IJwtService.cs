@@ -4,6 +4,6 @@ namespace Test01.JWT
 {
     public interface IJwtService
     {
-        string GenerateToken(User model);
+        string GenerateToken(User model, bool rememberMe);
     }
 }
