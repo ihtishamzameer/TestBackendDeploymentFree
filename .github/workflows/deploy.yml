@@ -60,6 +60,7 @@ jobs:
             -disableLink:AppPoolExtension ^
             -disableLink:ContentExtension ^
             -disableLink:CertificateExtension ^
+            -enableRule:DoNotDeleteRule ^
             -verbose
 
           IF %ERRORLEVEL% NEQ 0 (
