@@ -72,7 +72,7 @@ namespace Test01.Controllers
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
