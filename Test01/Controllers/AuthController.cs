@@ -96,8 +96,7 @@ namespace Test01.Controllers
                 });
             }
 
-            var passwordResult =
-                _passwordHasher.VerifyHashedPassword(
+            var passwordResult = _passwordHasher.VerifyHashedPassword(
                     user,
                     user.PasswordHash,
                     request.Password
@@ -118,8 +117,7 @@ namespace Test01.Controllers
             );
 
             // Generate refresh token
-            var refreshTokenValue =
-                _refreshTokenService.GenerateRefreshToken();
+            var refreshTokenValue =_refreshTokenService.GenerateRefreshToken();
 
             var refreshToken = new RefreshToken
             {
@@ -154,9 +152,7 @@ namespace Test01.Controllers
                 });
             }
 
-            var oldRefreshToken = await _context.RefreshTokens
-                .Include(x => x.User)
-                .FirstOrDefaultAsync(x => x.Token == request.RefreshToken);
+            var oldRefreshToken = await _context.RefreshTokens.Include(x => x.User).FirstOrDefaultAsync(x => x.Token == request.RefreshToken);
 
             if (oldRefreshToken == null)
             {
@@ -192,8 +188,7 @@ namespace Test01.Controllers
             );
 
             // Generate new refresh token
-            var newRefreshTokenValue =
-                _refreshTokenService.GenerateRefreshToken();
+            var newRefreshTokenValue =_refreshTokenService.GenerateRefreshToken();
 
             var newRefreshToken = new RefreshToken
             {
